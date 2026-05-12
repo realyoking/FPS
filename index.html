@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>L96A1 Elite - Nga Edition</title>
+    <style>
+        :root { --neon-green: #00ff41; --neon-red: #ff3131; }
+        body { margin: 0; overflow: hidden; background: #000; touch-action: none; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        
+        /* HUD Layout */
+        #hud {
+            position: fixed; inset: 0; pointer-events: none; z-index: 50;
+            display: flex; flex-direction: column; justify-content: space-between; padding: 20px;
+        }
+
+        #stats-top { display: flex; justify-content: space-between; color: var(--neon-green); text-shadow: 0 0 10px rgba(0,255,65,0.5); }
+        .stat-box { background: rgba(0,0,0,0.6); padding: 10px 20px; border-left: 3px solid var(--neon-green); }
+
+        /* Crosshair */
+        #crosshair {
+            position: fixed; top: 50%; left: 50%; width: 40px; height: 40px;
+            transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center;
+        }
+        .ch-line { position: absolute; background: var(--neon-green); opacity: 0.8; }
+        .v { width: 2px; height: 20px; } .h { width: 20px; height: 2px; }
+        .dot { width: 4px; height: 4px; background: var(--neon-red); border-radius: 50%; }
+
+        /* Controls */
+        #controls { position: fixed; inset: 0; pointer-events: none; z-index: 100; }
+        .joy-container { position: absolute; bottom: 50px; left: 50px; width: 150px; height: 150px; background: rgba(255,255,255,0.05); border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); pointer-events: auto; }
+        #stick { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 20px rgba(255,255,255,0.1); }
+        
+        #fire-zone { position: absolute; bottom: 50px; right: 50px; width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, rgba(255,0,0,0.3) 0%, transparent 70%); border: 2px dashed var(--neon-red); display: flex; align-items: center; justify-content: center; pointer-events: auto; cursor: pointer; }
+        #fire-btn { width: 80px; height: 80px; background: var(--neon-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.2rem; box-shadow: 0 0 30px rgba(255,0,0,0.5); }
+
+        #overlay { position: fixed; inset: 0; background: radial-gradient(circle, #222, #000); color: var(--neon-green); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
+        .pulse { animation: pulse-web 2s infinite; }
+        @keyframes pulse-web { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div id="overlay">
+    <h1 class="pulse">INITIALIZING L96A1 SYSTEMS</h1>
+    <p>TAP TO DEPLOY</p>
+</div>
+
+<div id="hud">
+    <div id="stats-top">
+        <div class="stat-box">TARGETS REMAINING: <span id="target-count">10</span></div>
+        <div class="stat-box">FPS: <span id="fps">60</span></div>
+    </div>
+    <div id="crosshair">
+        <div class="ch-line v" style="top: 0"></div>
+        <div class="ch-line v" style="bottom: 0"></div>
+        <div class="ch-line h" style="left: 0"></div>
+        <div class="ch-line h" style="right: 0"></div>
+        <div class="dot"></div>
+    </div>
+</div>
+
+<div id="controls">
+    <div class="joy-container" id="joy-base"><div id="stick"></div></div>
+    <div id="fire-zone"><div id="fire-btn">FIRE</div></div>
+</div>
+
+<script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+</script>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+    /**
+     * GAME ENGINE CORE
+     * @author Nga & Gemini
+     */
+    class GameEngine {
+        constructor() {
+            this.initScene();
+            this.initPhysics();
+            this.initWorld();
+            this.initInputs();
+            this.initAudio(); // Ready for expansion
+            this.animate();
+        }
+
+        initScene() {
+            this.scene = new THREE.Scene();
+            this.scene.background = new THREE.Color(0x050505);
+            this.scene.fog = new THREE.FogExp2(0x050505, 0.05);
+
+            this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+            this.camera.position.set(0, 1.6, 0);
+
+            this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            this.renderer.toneMapping = THREE.ReinhardToneMapping;
+            document.body.appendChild(this.renderer.domElement);
+
+            // Lighting
+            const ambient = new THREE.AmbientLight(0x404040, 2);
+            this.scene.add(ambient);
+            
+            this.sun = new THREE.PointLight(0x00ff41, 1, 50);
+            this.sun.position.set(5, 10, 5);
+            this.scene.add(this.sun);
+        }
+
+        initPhysics() {
+            this.clock = new THREE.Clock();
+            this.raycaster = new THREE.Raycaster();
+            this.moveData = { x: 0, y: 0 };
+            this.lookData = { x: 0, y: 0 };
+            this.npcs = [];
+            this.bullets = [];
+            this.mixer = null;
+        }
+
+        initWorld() {
+            // Floor with grid
+            const grid = new THREE.GridHelper(200, 100, 0x00ff41, 0x111111);
+            this.scene.add(grid);
+
+            // Spawn Targets
+            for(let i=0; i<10; i++) this.createNPC();
+
+            // Load Sniper
+            const loader = new GLTFLoader();
+            loader.load('l96a1.glb', (gltf) => {
+                this.sniper = gltf.scene;
+                this.camera.add(this.sniper);
+                this.scene.add(this.camera);
+                
+                // Position tweak for "Right Down" requirement
+                this.sniper.position.set(0.35, -0.38, -0.55);
+                this.sniper.rotation.y = Math.PI;
+                this.sniper.scale.set(0.08, 0.08, 0.08);
+
+                this.mixer = new THREE.AnimationMixer(this.sniper);
+                this.shootAnim = gltf.animations[0];
+            });
+        }
+
+        createNPC() {
+            const group = new THREE.Group();
+            
+            // Dummy Mesh
+            const bodyGeo = new THREE.CapsuleGeometry(0.4, 1.2, 4, 8);
+            const bodyMat = new THREE.MeshStandardMaterial({ 
+                color: 0x333333, 
+                emissive: 0xff0000, 
+                emissiveIntensity: 0.5,
+                wireframe: true 
+            });
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            
+            group.add(body);
+            group.position.set(Math.random()*40-20, 1.1, Math.random()*-40-10);
+            group.userData = { health: 100, alive: true };
+            
+            this.scene.add(group);
+            this.npcs.push(group);
+        }
+
+        initInputs() {
+            // Joystick
+            const stick = document.getElementById('stick');
+            const joyBase = document.getElementById('joy-base');
+
+            joyBase.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const t = e.touches[0];
+                const b = joyBase.getBoundingClientRect();
+                const center = { x: b.left + 75, y: b.top + 75 };
+                let dx = t.clientX - center.x;
+                let dy = t.clientY - center.y;
+                const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 75);
+                const angle = Math.atan2(dy, dx);
+
+                this.moveData.x = (Math.cos(angle) * dist) / 75;
+                this.moveData.y = (Math.sin(angle) * dist) / 75;
+
+                stick.style.left = `calc(50% + ${Math.cos(angle) * dist}px)`;
+                stick.style.top = `calc(50% + ${Math.sin(angle) * dist}px)`;
+            });
+
+            joyBase.addEventListener('touchend', () => {
+                this.moveData = { x: 0, y: 0 };
+                stick.style.left = stick.style.top = '50%';
+            });
+
+            // Look Logic (Screen Touch)
+            let lastX = 0, lastY = 0;
+            window.addEventListener('touchmove', (e) => {
+                const t = e.touches[0];
+                if(t.clientX > window.innerWidth / 2) {
+                    if(lastX !== 0) {
+                        this.camera.rotation.y -= (t.clientX - lastX) * 0.006;
+                        this.camera.rotation.x -= (t.clientY - lastY) * 0.006;
+                        this.camera.rotation.x = Math.max(-1.4, Math.min(1.4, this.camera.rotation.x));
+                    }
+                    lastX = t.clientX; lastY = t.clientY;
+                }
+            });
+            window.addEventListener('touchend', () => { lastX = lastY = 0; });
+
+            // Shoot
+            document.getElementById('fire-zone').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.handleFire();
+            });
+        }
+
+        handleFire() {
+            if(this.mixer && this.shootAnim) {
+                const action = this.mixer.clipAction(this.shootAnim);
+                action.reset().setLoop(THREE.LoopOnce).play();
+            }
+
+            // Muzzle Flash Effect
+            const flash = new THREE.PointLight(0xffaa00, 5, 2);
+            flash.position.copy(this.camera.position);
+            this.scene.add(flash);
+            setTimeout(() => this.scene.add(flash), 50); // flicker
+            setTimeout(() => this.scene.remove(flash), 100);
+
+            // Raycast Hit
+            this.raycaster.setFromCamera({x:0, y:0}, this.camera);
+            const hits = this.raycaster.intersectObjects(this.npcs, true);
+            
+            if(hits.length > 0) {
+                let target = hits[0].object;
+                while(target.parent && !target.userData.health) target = target.parent;
+                
+                if(target.userData.health > 0) {
+                    target.userData.health -= 100;
+                    if(target.userData.health <= 0) {
+                        this.explode(target.position);
+                        this.scene.remove(target);
+                        this.npcs = this.npcs.filter(n => n !== target);
+                        document.getElementById('target-count').innerText = this.npcs.length;
+                    }
+                }
+            }
+        }
+
+        explode(pos) {
+            // Simple particle burst
+            const geo = new THREE.IcosahedronGeometry(0.1);
+            const mat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            for(let i=0; i<10; i++) {
+                const p = new THREE.Mesh(geo, mat);
+                p.position.copy(pos);
+                p.userData.vel = new THREE.Vector3(Math.random()-0.5, Math.random(), Math.random()-0.5).multiplyScalar(0.2);
+                this.bullets.push(p);
+                this.scene.add(p);
+                setTimeout(() => this.scene.remove(p), 1000);
+            }
+        }
+
+        update(delta) {
+            // Movement
+            const speed = 0.2;
+            this.camera.translateZ(this.moveData.y * speed);
+            this.camera.translateX(this.moveData.x * speed);
+            this.camera.position.y = 1.6;
+
+            // Particles
+            this.bullets.forEach(p => {
+                if(p.userData.vel) p.position.add(p.userData.vel);
+            });
+
+            if(this.mixer) this.mixer.update(delta);
+            
+            // Stats
+            document.getElementById('fps').innerText = Math.round(1/delta);
+        }
+
+        animate() {
+            requestAnimationFrame(() => this.animate());
+            const delta = this.clock.getDelta();
+            this.update(delta);
+            this.renderer.render(this.scene, this.camera);
+        }
+    }
+
+    // Start Engine on Click
+    document.getElementById('overlay').onclick = () => {
+        document.getElementById('overlay').remove();
+        window.game = new GameEngine();
+    };
+
+    window.addEventListener('resize', () => {
+        if(window.game) {
+            window.game.camera.aspect = window.innerWidth / window.innerHeight;
+            window.game.camera.updateProjectionMatrix();
+            window.game.renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+    });
+
+</script>
+</body>
+</html>
