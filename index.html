@@ -3,43 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>L96A1 Morning - Nga Edition</title>
+    <title>Realistic FPS - Morning Shift</title>
     <style>
-        :root { --main-color: #ffffff; --accent-color: #ffde59; }
-        body { margin: 0; overflow: hidden; background: #87ceeb; font-family: 'Inter', sans-serif; touch-action: none; }
+        :root { --primary: #ffffff; --accent: #ff4747; --ui-bg: rgba(255, 255, 255, 0.15); }
+        body { margin: 0; overflow: hidden; background: #87ceeb; font-family: 'Inter', sans-serif; touch-action: none; color: white; user-select: none; }
         
-        #hud { position: fixed; inset: 0; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; padding: 25px; color: #333; }
-        .stat-card { background: rgba(255,255,255,0.8); border-bottom: 4px solid var(--accent-color); padding: 12px 20px; font-weight: 800; border-radius: 8px; backdrop-filter: blur(5px); }
+        /* HUD & UI Elements */
+        #hud { position: fixed; inset: 0; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; padding: 30px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .hud-top { display: flex; justify-content: space-between; align-items: flex-start; }
+        .stat-card { background: var(--ui-bg); backdrop-filter: blur(8px); padding: 15px 25px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); }
         
+        /* Realistic Reticle */
         #reticle { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; }
-        .scope-line { position: absolute; background: #000; opacity: 0.5; }
-        .sl-v { width: 1px; height: 40px; } .sl-h { width: 40px; height: 1px; }
-        .center-dot { width: 4px; height: 4px; background: red; border-radius: 50%; }
+        .scope-cross { position: absolute; background: black; opacity: 0.6; }
+        .sc-v { width: 1px; height: 60px; } .sc-h { width: 60px; height: 1px; }
+        .reticle-dot { width: 4px; height: 4px; background: red; border-radius: 50%; box-shadow: 0 0 8px rgba(255,0,0,0.8); }
 
-        #joy-zone { position: absolute; bottom: 50px; left: 50px; width: 130px; height: 130px; border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; pointer-events: auto; background: rgba(255,255,255,0.3); }
-        #joy-stick { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; background: #333; border-radius: 50%; transform: translate(-50%, -50%); }
+        /* Mobile Controls */
+        #joy-zone { position: absolute; bottom: 60px; left: 60px; width: 150px; height: 150px; border: 4px solid rgba(255,255,255,0.2); border-radius: 50%; pointer-events: auto; background: rgba(0,0,0,0.2); backdrop-filter: blur(5px); }
+        #joy-stick { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; background: rgba(255,255,255,0.8); border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 20px rgba(0,0,0,0.3); pointer-events: none; }
         
-        #fire-zone { position: absolute; bottom: 60px; right: 60px; pointer-events: auto; }
-        .fire-btn { width: 90px; height: 90px; background: #ff4747; border: 5px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(0,0,0,0.2); cursor: pointer; }
+        #fire-zone { position: absolute; bottom: 70px; right: 70px; pointer-events: auto; }
+        .fire-btn { width: 110px; height: 110px; background: radial-gradient(circle, var(--accent), #b30000); border: 6px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; box-shadow: 0 15px 30px rgba(0,0,0,0.4); cursor: pointer; transition: transform 0.1s; }
+        .fire-btn:active { transform: scale(0.9); }
 
-        #overlay { position: fixed; inset: 0; background: #fff; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #333; cursor: pointer; }
+        /* Loading & Info Overlays */
+        #overlay { position: fixed; inset: 0; background: linear-gradient(135deg, #2c3e50, #000); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer; }
+        #overlay h1 { font-size: 3rem; font-weight: 900; background: linear-gradient(to right, #ff416c, #ff4b2b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        #loading-screen { position: fixed; inset: 0; background: black; z-index: 110; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { border: 8px solid rgba(255,255,255,0.1); border-top: 8px solid var(--accent); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<div id="overlay">
-    <h1>READY FOR THE MORNING SHIFT?</h1>
-    <p>TAP TO START</p>
+<div id="loading-screen">
+    <div class="spinner"></div>
+    <p>Loading Systems...</p>
+</div>
+<div id="overlay" style="display: none;">
+    <h1>L96A1 ADVANCED FPS</h1>
+    <p>TAP TO DEPLOY</p>
 </div>
 
 <div id="hud">
-    <div style="display: flex; justify-content: space-between;">
+    <div class="hud-top">
         <div class="stat-card">TARGETS: <span id="npc-count">10</span></div>
     </div>
     <div id="reticle">
-        <div class="scope-line sl-v"></div>
-        <div class="scope-line sl-h"></div>
-        <div class="center-dot"></div>
+        <div class="scope-cross sc-v"></div>
+        <div class="scope-cross sc-h"></div>
+        <div class="reticle-dot"></div>
     </div>
 </div>
 
@@ -54,105 +68,64 @@
     import * as THREE from 'three';
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-    class SniperGame {
+    class Game {
         constructor() {
-            this.init();
+            this.initEngine();
+            this.initInput();
+            this.initSystems();
             this.createWorld();
-            this.loadGun();
-            this.setupControls();
+            this.loadModel();
             this.animate();
         }
 
-        init() {
+        initEngine() {
             this.scene = new THREE.Scene();
-            this.scene.background = new THREE.Color(0x87ceeb); // Morning Sky
-            this.scene.fog = new THREE.Fog(0x87ceeb, 20, 100);
+            // Realistic Morning Sky
+            this.scene.background = new THREE.Color(0xa3d5ff); 
+            this.scene.fog = new THREE.FogExp2(0xa3d5ff, 0.015);
 
-            this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+            this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             this.camera.position.set(0, 1.6, 0);
-            this.scene.add(this.camera); // Add camera to scene immediately
+            this.scene.add(this.camera);
 
-            this.renderer = new THREE.WebGLRenderer({ antialias: true });
+            this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
             this.renderer.setSize(window.innerWidth, window.innerHeight);
             this.renderer.setPixelRatio(window.devicePixelRatio);
+            this.renderer.shadowMap.enabled = true;
+            this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            this.renderer.toneMapping = THREE.ReinhardToneMapping;
             document.body.appendChild(this.renderer.domElement);
 
             this.clock = new THREE.Clock();
             this.raycaster = new THREE.Raycaster();
             this.npcs = [];
+        }
+
+        initInput() {
             this.moveDir = { x: 0, y: 0 };
             this.lastLook = { x: 0, y: 0 };
-        }
+            this.joystickStick = document.getElementById('joy-stick');
+            this.joystickZone = document.getElementById('joy-zone');
 
-        createWorld() {
-            // Sun Light
-            const sun = new THREE.DirectionalLight(0xfff5d7, 2);
-            sun.position.set(10, 20, 10);
-            this.scene.add(sun);
-            this.scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-
-            // Floor
-            const ground = new THREE.Mesh(
-                new THREE.PlaneGeometry(200, 200),
-                new THREE.MeshStandardMaterial({ color: 0x4a7c44 }) // Grass Green
-            );
-            ground.rotation.x = -Math.PI / 2;
-            this.scene.add(ground);
-
-            for (let i = 0; i < 10; i++) this.spawnNPC();
-        }
-
-        loadGun() {
-            const loader = new GLTFLoader();
-            // Using ./ to ensure it looks in the root folder
-            loader.load('./sniper.glb', (gltf) => {
-                this.sniper = gltf.scene;
-                this.camera.add(this.sniper);
-                
-                this.sniper.position.set(0.35, -0.35, -0.6);
-                this.sniper.rotation.y = Math.PI;
-                this.sniper.scale.set(0.1, 0.1, 0.1);
-
-                this.mixer = new THREE.AnimationMixer(this.sniper);
-                this.shootAnim = gltf.animations[0];
-                console.log("Sniper loaded successfully");
-            }, undefined, (err) => {
-                console.error("FAILED TO LOAD SNIPER.GLB:", err);
-                alert("Can't find sniper.glb! Check your file name (all lowercase).");
-            });
-        }
-
-        spawnNPC() {
-            const body = new THREE.Mesh(
-                new THREE.CapsuleGeometry(0.4, 1.2),
-                new THREE.MeshStandardMaterial({ color: 0xff4444 })
-            );
-            body.position.set(Math.random() * 50 - 25, 1.1, Math.random() * -50 - 10);
-            body.userData = { hp: 100 };
-            this.scene.add(body);
-            this.npcs.push(body);
-        }
-
-        setupControls() {
-            const stick = document.getElementById('joy-stick');
-            const zone = document.getElementById('joy-zone');
-
-            zone.addEventListener('touchmove', (e) => {
+            this.joystickZone.addEventListener('touchmove', (e) => {
                 const t = e.touches[0];
-                const r = zone.getBoundingClientRect();
-                const dx = t.clientX - (r.left + 65), dy = t.clientY - (r.top + 65);
-                const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 65);
+                const r = this.joystickZone.getBoundingClientRect();
+                const center = { x: r.left + 75, y: r.top + 75 };
+                let dx = t.clientX - center.x;
+                let dy = t.clientY - center.y;
+                const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 75);
                 const angle = Math.atan2(dy, dx);
                 
-                this.moveDir.x = (Math.cos(angle) * dist) / 65;
-                this.moveDir.y = (Math.sin(angle) * dist) / 65;
-                stick.style.left = `calc(50% + ${Math.cos(angle) * dist}px)`;
-                stick.style.top = `calc(50% + ${Math.sin(angle) * dist}px)`;
+                this.moveDir.x = (Math.cos(angle) * dist) / 75;
+                this.moveDir.y = (Math.sin(angle) * dist) / 75;
+                
+                this.joystickStick.style.left = `calc(50% + ${Math.cos(angle) * dist}px)`;
+                this.joystickStick.style.top = `calc(50% + ${Math.sin(angle) * dist}px)`;
             });
 
-            zone.addEventListener('touchend', () => {
+            this.joystickZone.addEventListener('touchend', () => {
                 this.moveDir = { x: 0, y: 0 };
-                stick.style.left = stick.style.top = '50%';
+                this.joystickStick.style.left = this.joystickStick.style.top = '50%';
             });
 
             window.addEventListener('touchmove', (e) => {
@@ -161,6 +134,7 @@
                     if (this.lastLook.x !== 0) {
                         this.camera.rotation.y -= (t.clientX - this.lastLook.x) * 0.005;
                         this.camera.rotation.x -= (t.clientY - this.lastLook.y) * 0.005;
+                        this.camera.rotation.x = Math.max(-1.4, Math.min(1.4, this.camera.rotation.x));
                     }
                     this.lastLook.x = t.clientX; this.lastLook.y = t.clientY;
                 }
@@ -173,11 +147,132 @@
             });
         }
 
+        initSystems() {
+            // Screen Shake System
+            this.shake = new THREE.Vector3();
+            
+            // Blood Particle System
+            this.bloodParticles = [];
+            const particleGeo = new THREE.SphereGeometry(0.05, 6, 6);
+            const particleMat = new THREE.MeshBasicMaterial({ color: 0x8b0000 });
+            this.particleMesh = new THREE.InstancedMesh(particleGeo, particleMat, 100);
+            this.particleMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+            this.scene.add(this.particleMesh);
+            this.nextParticleIndex = 0;
+        }
+
+        createWorld() {
+            // Realistic "Sun" Directional Light
+            const sun = new THREE.DirectionalLight(0xfff5d7, 2.5);
+            sun.position.set(20, 40, 20);
+            sun.castShadow = true;
+            sun.shadow.mapSize.width = 2048;
+            sun.shadow.mapSize.height = 2048;
+            sun.shadow.camera.near = 1;
+            sun.shadow.camera.far = 200;
+            sun.shadow.camera.left = -50;
+            sun.shadow.camera.right = 50;
+            sun.shadow.camera.top = 50;
+            sun.shadow.camera.bottom = -50;
+            this.scene.add(sun);
+            this.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+
+            // Realistic Ground Plane with texture
+            const textureLoader = new THREE.TextureLoader();
+            const groundTex = textureLoader.load('https://threejs.org/examples/textures/terrain/grasslight-big.jpg');
+            groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping;
+            groundTex.repeat.set(25, 25);
+            groundTex.anisotropy = 16;
+
+            const ground = new THREE.Mesh(
+                new THREE.PlaneGeometry(200, 200),
+                new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.9 })
+            );
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            this.scene.add(ground);
+
+            for (let i = 0; i < 10; i++) this.spawnNPC();
+        }
+
+        loadModel() {
+            console.log("Starting model load for sniper.glb...");
+            const loader = new GLTFLoader();
+            loader.load('./sniper.glb', 
+                (gltf) => {
+                    console.log("Sniper GLB loaded successfully");
+                    this.sniper = gltf.scene;
+                    this.camera.add(this.sniper);
+                    
+                    this.sniper.position.set(0.4, -0.42, -0.7);
+                    this.sniper.rotation.y = Math.PI;
+                    this.sniper.scale.set(0.12, 0.12, 0.12);
+
+                    // Animation setup
+                    this.mixer = new THREE.AnimationMixer(this.sniper);
+                    if(gltf.animations.length > 0) {
+                        this.shootAnim = gltf.animations[0]; // Assuming fire is first
+                    } else {
+                        console.warn("No animations found in sniper.glb");
+                    }
+                    
+                    this.hideLoading();
+                }, 
+                (xhr) => {
+                    if (xhr.lengthComputable) {
+                        const percentComplete = xhr.loaded / xhr.total * 100;
+                        console.log(`Loading sniper.glb: ${Math.round(percentComplete, 2)}%`);
+                    }
+                },
+                (err) => {
+                    console.error("CRITICAL ERROR: Failed to load sniper.glb", err);
+                    this.hideLoading();
+                    const overlayH1 = document.querySelector('#overlay h1');
+                    overlayH1.innerText = "MODEL ERROR";
+                    overlayH1.style.background = "red";
+                    overlayH1.style.webkitTextFillColor = "white";
+                    document.querySelector('#overlay p').innerText = "Make sure 'sniper.glb' is in the same folder as this 'index.html'";
+                    document.getElementById('overlay').style.display = 'flex';
+                }
+            );
+        }
+
+        spawnNPC() {
+            const bodyGeo = new THREE.CapsuleGeometry(0.4, 1.2, 4, 8);
+            const bodyMat = new THREE.MeshStandardMaterial({ 
+                color: 0x333333, 
+                emissive: 0xff0000, 
+                emissiveIntensity: 0.2,
+                roughness: 0.7 
+            });
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            
+            body.position.set(Math.random() * 80 - 40, 1.1, Math.random() * -80 - 10);
+            body.castShadow = true;
+            body.userData = { hp: 100 };
+            this.scene.add(body);
+            this.npcs.push(body);
+        }
+
         fire() {
             if (this.mixer && this.shootAnim) {
                 this.mixer.stopAllAction();
                 this.mixer.clipAction(this.shootAnim).setLoop(THREE.LoopOnce).play();
             }
+
+            // --- Real Shake Logic ---
+            this.shake.set(
+                (Math.random() - 0.5) * 0.08,
+                (Math.random() - 0.5) * 0.08,
+                (Math.random() - 0.5) * 0.03 // Slight forward shake
+            );
+
+            // Muzzle Flash Effect (Point Light)
+            const flash = new THREE.PointLight(0xffaa00, 8, 3);
+            const muzzlePos = new THREE.Vector3(0.4, -0.2, -1.2).applyMatrix4(this.camera.matrixWorld);
+            flash.position.copy(muzzlePos);
+            this.scene.add(flash);
+            setTimeout(() => this.scene.remove(flash), 60);
 
             this.raycaster.setFromCamera({ x: 0, y: 0 }, this.camera);
             const hits = this.raycaster.intersectObjects(this.npcs);
@@ -187,23 +282,82 @@
                 this.scene.remove(target);
                 this.npcs = this.npcs.filter(n => n !== target);
                 document.getElementById('npc-count').innerText = this.npcs.length;
+                
+                // --- Real Blood Logic ---
+                this.spawnBlood(hits[0].point);
             }
+        }
+
+        spawnBlood(position) {
+            for (let i = 0; i < 15; i++) {
+                const matrix = new THREE.Matrix4();
+                matrix.setPosition(position);
+                this.particleMesh.setMatrixAt(this.nextParticleIndex, matrix);
+                
+                // Velocity data
+                const vel = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.2, 
+                    (Math.random() * 0.2) + 0.1, // Always slightly up
+                    (Math.random() - 0.5) * 0.2
+                );
+                this.bloodParticles.push({ index: this.nextParticleIndex, vel: vel, life: 1.0 });
+
+                this.nextParticleIndex = (this.nextParticleIndex + 1) % 100; // Reuse pool
+            }
+            this.particleMesh.instanceMatrix.needsUpdate = true;
+        }
+
+        updateBlood(dt) {
+            this.bloodParticles.forEach((p, i) => {
+                p.life -= dt * 2; // Fade out
+                p.vel.y -= dt * 0.5; // Gravity
+                
+                const matrix = new THREE.Matrix4();
+                this.particleMesh.getMatrixAt(p.index, matrix);
+                const pos = new THREE.Vector3();
+                pos.setFromMatrixPosition(matrix);
+                pos.addScaledVector(p.vel, 1);
+                matrix.setPosition(pos);
+                this.particleMesh.setMatrixAt(p.index, matrix);
+
+                if (p.life <= 0) {
+                    this.bloodParticles.splice(i, 1);
+                }
+            });
+            this.particleMesh.instanceMatrix.needsUpdate = true;
+        }
+
+        update(dt) {
+            // Movement
+            const speed = 0.15;
+            this.camera.translateZ(this.moveDir.y * speed);
+            this.camera.translateX(this.moveDir.x * speed);
+            this.camera.position.y = 1.6;
+
+            // Apply Camera Shake & Recovery
+            this.camera.position.addScaledVector(this.shake, 1);
+            this.shake.multiplyScalar(0.85); // Decay over time
+
+            if (this.mixer) this.mixer.update(dt);
+            this.updateBlood(dt);
         }
 
         animate() {
             requestAnimationFrame(() => this.animate());
             const dt = this.clock.getDelta();
-            this.camera.translateZ(this.moveDir.y * 0.15);
-            this.camera.translateX(this.moveDir.x * 0.15);
-            this.camera.position.y = 1.6;
-            if (this.mixer) this.mixer.update(dt);
+            this.update(dt);
             this.renderer.render(this.scene, this.camera);
+        }
+
+        hideLoading() {
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('overlay').style.display = 'flex';
         }
     }
 
     document.getElementById('overlay').onclick = () => {
         document.getElementById('overlay').remove();
-        new SniperGame();
+        new Game();
     };
 </script>
 </body>
