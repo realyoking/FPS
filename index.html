@@ -3,62 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Realistic FPS - Morning Shift</title>
+    <title>L96A1 Elite: Morning Shift</title>
     <style>
-        :root { --primary: #ffffff; --accent: #ff4747; --ui-bg: rgba(255, 255, 255, 0.15); }
-        body { margin: 0; overflow: hidden; background: #87ceeb; font-family: 'Inter', sans-serif; touch-action: none; color: white; user-select: none; }
+        :root { --accent: #ff3e3e; --glass: rgba(255, 255, 255, 0.2); }
+        body { margin: 0; overflow: hidden; background: #87ceeb; font-family: 'Segoe UI', sans-serif; touch-action: none; user-select: none; }
         
-        /* HUD & UI Elements */
-        #hud { position: fixed; inset: 0; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; padding: 30px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-        .hud-top { display: flex; justify-content: space-between; align-items: flex-start; }
-        .stat-card { background: var(--ui-bg); backdrop-filter: blur(8px); padding: 15px 25px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); }
+        /* High-End HUD */
+        #ui-layer { position: fixed; inset: 0; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; padding: 25px; }
+        .stats { display: flex; gap: 15px; }
+        .badge { background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 8px; color: white; font-weight: 900; border-left: 4px solid var(--accent); backdrop-filter: blur(5px); }
         
-        /* Realistic Reticle */
+        /* Sniper Reticle */
         #reticle { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; }
-        .scope-cross { position: absolute; background: black; opacity: 0.6; }
-        .sc-v { width: 1px; height: 60px; } .sc-h { width: 60px; height: 1px; }
-        .reticle-dot { width: 4px; height: 4px; background: red; border-radius: 50%; box-shadow: 0 0 8px rgba(255,0,0,0.8); }
+        .cross { position: absolute; background: rgba(0,0,0,0.8); }
+        .c-v { width: 1.5px; height: 50px; } .c-h { width: 50px; height: 1.5px; }
+        .center-dot { width: 4px; height: 4px; background: red; border-radius: 50%; box-shadow: 0 0 10px red; }
 
-        /* Mobile Controls */
-        #joy-zone { position: absolute; bottom: 60px; left: 60px; width: 150px; height: 150px; border: 4px solid rgba(255,255,255,0.2); border-radius: 50%; pointer-events: auto; background: rgba(0,0,0,0.2); backdrop-filter: blur(5px); }
-        #joy-stick { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; background: rgba(255,255,255,0.8); border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 20px rgba(0,0,0,0.3); pointer-events: none; }
+        /* Controls */
+        #move-zone { position: absolute; bottom: 50px; left: 50px; width: 140px; height: 140px; border: 2px solid var(--glass); border-radius: 50%; background: var(--glass); pointer-events: auto; }
+        #stick { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; background: white; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         
-        #fire-zone { position: absolute; bottom: 70px; right: 70px; pointer-events: auto; }
-        .fire-btn { width: 110px; height: 110px; background: radial-gradient(circle, var(--accent), #b30000); border: 6px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; box-shadow: 0 15px 30px rgba(0,0,0,0.4); cursor: pointer; transition: transform 0.1s; }
-        .fire-btn:active { transform: scale(0.9); }
+        #fire-btn { position: absolute; bottom: 60px; right: 60px; width: 100px; height: 100px; background: var(--accent); border: 5px solid white; border-radius: 50%; pointer-events: auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(255, 62, 62, 0.4); cursor: pointer; transition: transform 0.1s; }
+        #fire-btn:active { transform: scale(0.9); }
 
-        /* Loading & Info Overlays */
-        #overlay { position: fixed; inset: 0; background: linear-gradient(135deg, #2c3e50, #000); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer; }
-        #overlay h1 { font-size: 3rem; font-weight: 900; background: linear-gradient(to right, #ff416c, #ff4b2b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        #loading-screen { position: fixed; inset: 0; background: black; z-index: 110; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .spinner { border: 8px solid rgba(255,255,255,0.1); border-top: 8px solid var(--accent); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; }
+        /* Overlays */
+        #loading { position: fixed; inset: 0; background: #111; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        #start-screen { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 90; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; cursor: pointer; text-align: center; }
+        .spinner { border: 5px solid rgba(255,255,255,0.1); border-top: 5px solid white; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<div id="loading-screen">
+<div id="loading">
     <div class="spinner"></div>
-    <p>Loading Systems...</p>
-</div>
-<div id="overlay" style="display: none;">
-    <h1>L96A1 ADVANCED FPS</h1>
-    <p>TAP TO DEPLOY</p>
+    <p>SYNCING SYSTEMS, NGA...</p>
 </div>
 
-<div id="hud">
-    <div class="hud-top">
-        <div class="stat-card">TARGETS: <span id="npc-count">10</span></div>
+<div id="start-screen">
+    <h1 style="font-size: 3rem; margin-bottom: 0;">L96A1 ELITE</h1>
+    <p style="letter-spacing: 5px; opacity: 0.6;">MORNING OPERATION</p>
+    <p style="margin-top: 50px; border: 1px solid white; padding: 10px 30px;">TAP TO DEPLOY</p>
+</div>
+
+<div id="ui-layer">
+    <div class="stats">
+        <div class="badge">TARGETS: <span id="target-count">12</span></div>
+        <div class="badge" id="fps-val">60 FPS</div>
     </div>
     <div id="reticle">
-        <div class="scope-cross sc-v"></div>
-        <div class="scope-cross sc-h"></div>
-        <div class="reticle-dot"></div>
+        <div class="cross c-v"></div>
+        <div class="cross c-h"></div>
+        <div class="center-dot"></div>
     </div>
 </div>
 
-<div id="joy-zone"><div id="joy-stick"></div></div>
-<div id="fire-zone"><div class="fire-btn">🔥</div></div>
+<div id="move-zone"><div id="stick"></div></div>
+<div id="fire-btn">
+    <svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+    </svg>
+</div>
 
 <script type="importmap">
     { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
@@ -68,297 +73,232 @@
     import * as THREE from 'three';
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-    class Game {
+    class GameEngine {
         constructor() {
-            this.initEngine();
-            this.initInput();
-            this.initSystems();
-            this.createWorld();
-            this.loadModel();
-            this.animate();
+            this.initCore();
+            this.initLights();
+            this.initEnvironment();
+            this.initParticles();
+            this.loadSniper();
+            this.setupEvents();
+            this.renderLoop();
         }
 
-        initEngine() {
+        initCore() {
             this.scene = new THREE.Scene();
-            // Realistic Morning Sky
-            this.scene.background = new THREE.Color(0xa3d5ff); 
-            this.scene.fog = new THREE.FogExp2(0xa3d5ff, 0.015);
+            this.scene.background = new THREE.Color(0x87ceeb);
+            this.scene.fog = new THREE.FogExp2(0x87ceeb, 0.01);
 
             this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             this.camera.position.set(0, 1.6, 0);
             this.scene.add(this.camera);
 
-            this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            this.renderer = new THREE.WebGLRenderer({ antialias: true });
             this.renderer.setSize(window.innerWidth, window.innerHeight);
-            this.renderer.setPixelRatio(window.devicePixelRatio);
+            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             this.renderer.shadowMap.enabled = true;
-            this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            this.renderer.toneMapping = THREE.ReinhardToneMapping;
+            this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
             document.body.appendChild(this.renderer.domElement);
 
             this.clock = new THREE.Clock();
             this.raycaster = new THREE.Raycaster();
-            this.npcs = [];
+            this.targets = [];
+            this.moveData = { x: 0, y: 0 };
+            this.lookData = { x: 0, y: 0 };
+            this.recoil = new THREE.Vector3();
         }
 
-        initInput() {
-            this.moveDir = { x: 0, y: 0 };
-            this.lastLook = { x: 0, y: 0 };
-            this.joystickStick = document.getElementById('joy-stick');
-            this.joystickZone = document.getElementById('joy-zone');
-
-            this.joystickZone.addEventListener('touchmove', (e) => {
-                const t = e.touches[0];
-                const r = this.joystickZone.getBoundingClientRect();
-                const center = { x: r.left + 75, y: r.top + 75 };
-                let dx = t.clientX - center.x;
-                let dy = t.clientY - center.y;
-                const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 75);
-                const angle = Math.atan2(dy, dx);
-                
-                this.moveDir.x = (Math.cos(angle) * dist) / 75;
-                this.moveDir.y = (Math.sin(angle) * dist) / 75;
-                
-                this.joystickStick.style.left = `calc(50% + ${Math.cos(angle) * dist}px)`;
-                this.joystickStick.style.top = `calc(50% + ${Math.sin(angle) * dist}px)`;
-            });
-
-            this.joystickZone.addEventListener('touchend', () => {
-                this.moveDir = { x: 0, y: 0 };
-                this.joystickStick.style.left = this.joystickStick.style.top = '50%';
-            });
-
-            window.addEventListener('touchmove', (e) => {
-                const t = e.touches[0];
-                if (t.clientX > window.innerWidth / 2) {
-                    if (this.lastLook.x !== 0) {
-                        this.camera.rotation.y -= (t.clientX - this.lastLook.x) * 0.005;
-                        this.camera.rotation.x -= (t.clientY - this.lastLook.y) * 0.005;
-                        this.camera.rotation.x = Math.max(-1.4, Math.min(1.4, this.camera.rotation.x));
-                    }
-                    this.lastLook.x = t.clientX; this.lastLook.y = t.clientY;
-                }
-            });
-            window.addEventListener('touchend', () => { this.lastLook = { x: 0, y: 0 }; });
-
-            document.querySelector('.fire-btn').addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                this.fire();
-            });
-        }
-
-        initSystems() {
-            // Screen Shake System
-            this.shake = new THREE.Vector3();
-            
-            // Blood Particle System
-            this.bloodParticles = [];
-            const particleGeo = new THREE.SphereGeometry(0.05, 6, 6);
-            const particleMat = new THREE.MeshBasicMaterial({ color: 0x8b0000 });
-            this.particleMesh = new THREE.InstancedMesh(particleGeo, particleMat, 100);
-            this.particleMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-            this.scene.add(this.particleMesh);
-            this.nextParticleIndex = 0;
-        }
-
-        createWorld() {
-            // Realistic "Sun" Directional Light
+        initLights() {
+            // Warm Morning Sun
             const sun = new THREE.DirectionalLight(0xfff5d7, 2.5);
-            sun.position.set(20, 40, 20);
+            sun.position.set(50, 100, 50);
             sun.castShadow = true;
-            sun.shadow.mapSize.width = 2048;
-            sun.shadow.mapSize.height = 2048;
-            sun.shadow.camera.near = 1;
-            sun.shadow.camera.far = 200;
-            sun.shadow.camera.left = -50;
-            sun.shadow.camera.right = 50;
-            sun.shadow.camera.top = 50;
-            sun.shadow.camera.bottom = -50;
             this.scene.add(sun);
-            this.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
-            // Realistic Ground Plane with texture
-            const textureLoader = new THREE.TextureLoader();
-            const groundTex = textureLoader.load('https://threejs.org/examples/textures/terrain/grasslight-big.jpg');
-            groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping;
-            groundTex.repeat.set(25, 25);
-            groundTex.anisotropy = 16;
+            const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+            this.scene.add(ambient);
+            
+            // Sun Mesh for visuals
+            const sunGeo = new THREE.SphereGeometry(5, 32, 32);
+            const sunMat = new THREE.MeshBasicMaterial({ color: 0xffffee });
+            const sunMesh = new THREE.Mesh(sunGeo, sunMat);
+            sunMesh.position.set(100, 200, -300);
+            this.scene.add(sunMesh);
+        }
 
+        initEnvironment() {
             const ground = new THREE.Mesh(
-                new THREE.PlaneGeometry(200, 200),
-                new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.9 })
+                new THREE.PlaneGeometry(500, 500),
+                new THREE.MeshStandardMaterial({ color: 0x3d5e3a, roughness: 0.8 })
             );
             ground.rotation.x = -Math.PI / 2;
             ground.receiveShadow = true;
             this.scene.add(ground);
 
-            for (let i = 0; i < 10; i++) this.spawnNPC();
+            for (let i = 0; i < 12; i++) this.spawnTarget();
         }
 
-        loadModel() {
-            console.log("Starting model load for sniper.glb...");
-            const loader = new GLTFLoader();
-            loader.load('./sniper.glb', 
-                (gltf) => {
-                    console.log("Sniper GLB loaded successfully");
-                    this.sniper = gltf.scene;
-                    this.camera.add(this.sniper);
-                    
-                    this.sniper.position.set(0.4, -0.42, -0.7);
-                    this.sniper.rotation.y = Math.PI;
-                    this.sniper.scale.set(0.12, 0.12, 0.12);
-
-                    // Animation setup
-                    this.mixer = new THREE.AnimationMixer(this.sniper);
-                    if(gltf.animations.length > 0) {
-                        this.shootAnim = gltf.animations[0]; // Assuming fire is first
-                    } else {
-                        console.warn("No animations found in sniper.glb");
-                    }
-                    
-                    this.hideLoading();
-                }, 
-                (xhr) => {
-                    if (xhr.lengthComputable) {
-                        const percentComplete = xhr.loaded / xhr.total * 100;
-                        console.log(`Loading sniper.glb: ${Math.round(percentComplete, 2)}%`);
-                    }
-                },
-                (err) => {
-                    console.error("CRITICAL ERROR: Failed to load sniper.glb", err);
-                    this.hideLoading();
-                    const overlayH1 = document.querySelector('#overlay h1');
-                    overlayH1.innerText = "MODEL ERROR";
-                    overlayH1.style.background = "red";
-                    overlayH1.style.webkitTextFillColor = "white";
-                    document.querySelector('#overlay p').innerText = "Make sure 'sniper.glb' is in the same folder as this 'index.html'";
-                    document.getElementById('overlay').style.display = 'flex';
-                }
+        spawnTarget() {
+            const target = new THREE.Mesh(
+                new THREE.CapsuleGeometry(0.4, 1.2),
+                new THREE.MeshStandardMaterial({ color: 0xff3333, emissive: 0x550000 })
             );
+            target.position.set(Math.random() * 60 - 30, 1.1, Math.random() * -60 - 10);
+            target.castShadow = true;
+            target.userData = { hp: 100 };
+            this.scene.add(target);
+            this.targets.push(target);
         }
 
-        spawnNPC() {
-            const bodyGeo = new THREE.CapsuleGeometry(0.4, 1.2, 4, 8);
-            const bodyMat = new THREE.MeshStandardMaterial({ 
-                color: 0x333333, 
-                emissive: 0xff0000, 
-                emissiveIntensity: 0.2,
-                roughness: 0.7 
-            });
-            const body = new THREE.Mesh(bodyGeo, bodyMat);
+        initParticles() {
+            this.bloodBits = [];
+            this.bloodGeo = new THREE.SphereGeometry(0.06, 4, 4);
+            this.bloodMat = new THREE.MeshBasicMaterial({ color: 0xaa0000 });
+        }
+
+        loadSniper() {
+            const loader = new GLTFLoader();
             
-            body.position.set(Math.random() * 80 - 40, 1.1, Math.random() * -80 - 10);
-            body.castShadow = true;
-            body.userData = { hp: 100 };
-            this.scene.add(body);
-            this.npcs.push(body);
+            // Failsafe: Start game even if gun fails after 4s
+            const failTimer = setTimeout(() => {
+                console.warn("Gun load timed out.");
+                this.showStart();
+            }, 4000);
+
+            loader.load('sniper.glb', (gltf) => {
+                clearTimeout(failTimer);
+                this.sniper = gltf.scene;
+                this.camera.add(this.sniper);
+                this.sniper.position.set(0.4, -0.45, -0.7);
+                this.sniper.rotation.y = Math.PI;
+                this.sniper.scale.set(0.12, 0.12, 0.12);
+
+                this.mixer = new THREE.AnimationMixer(this.sniper);
+                if (gltf.animations.length > 0) this.fireAnim = gltf.animations[0];
+                
+                this.showStart();
+            }, undefined, (e) => {
+                clearTimeout(failTimer);
+                console.error("Path Error:", e);
+                this.showStart();
+            });
+        }
+
+        showStart() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('start-screen').style.display = 'flex';
+        }
+
+        setupEvents() {
+            const stick = document.getElementById('stick');
+            const zone = document.getElementById('move-zone');
+
+            zone.addEventListener('touchmove', (e) => {
+                const t = e.touches[0];
+                const r = zone.getBoundingClientRect();
+                const dx = t.clientX - (r.left + 70), dy = t.clientY - (r.top + 70);
+                const d = Math.min(Math.sqrt(dx*dx + dy*dy), 70);
+                const a = Math.atan2(dy, dx);
+                this.moveData = { x: (Math.cos(a)*d)/70, y: (Math.sin(a)*d)/70 };
+                stick.style.left = `calc(50% + ${Math.cos(a)*d}px)`;
+                stick.style.top = `calc(50% + ${Math.sin(a)*d}px)`;
+            });
+
+            zone.addEventListener('touchend', () => {
+                this.moveData = { x: 0, y: 0 };
+                stick.style.left = stick.style.top = '50%';
+            });
+
+            window.addEventListener('touchmove', (e) => {
+                const t = e.touches[0];
+                if (t.clientX > window.innerWidth / 2) {
+                    if (this.lookData.x !== 0) {
+                        this.camera.rotation.y -= (t.clientX - this.lookData.x) * 0.005;
+                        this.camera.rotation.x -= (t.clientY - this.lookData.y) * 0.005;
+                        this.camera.rotation.x = Math.max(-1.4, Math.min(1.4, this.camera.rotation.x));
+                    }
+                    this.lookData = { x: t.clientX, y: t.clientY };
+                }
+            });
+            window.addEventListener('touchend', () => this.lookData = { x: 0, y: 0 });
+
+            document.getElementById('fire-btn').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.fire();
+            });
         }
 
         fire() {
-            if (this.mixer && this.shootAnim) {
+            if (this.mixer && this.fireAnim) {
                 this.mixer.stopAllAction();
-                this.mixer.clipAction(this.shootAnim).setLoop(THREE.LoopOnce).play();
+                this.mixer.clipAction(this.fireAnim).setLoop(THREE.LoopOnce).play();
             }
 
-            // --- Real Shake Logic ---
-            this.shake.set(
-                (Math.random() - 0.5) * 0.08,
-                (Math.random() - 0.5) * 0.08,
-                (Math.random() - 0.5) * 0.03 // Slight forward shake
+            // Cinematic Shake Logic: Recoil Vector
+            this.recoil.set(
+                (Math.random() - 0.5) * 0.1, 
+                0.12 + Math.random() * 0.05, 
+                0
             );
 
-            // Muzzle Flash Effect (Point Light)
-            const flash = new THREE.PointLight(0xffaa00, 8, 3);
-            const muzzlePos = new THREE.Vector3(0.4, -0.2, -1.2).applyMatrix4(this.camera.matrixWorld);
-            flash.position.copy(muzzlePos);
-            this.scene.add(flash);
-            setTimeout(() => this.scene.remove(flash), 60);
-
             this.raycaster.setFromCamera({ x: 0, y: 0 }, this.camera);
-            const hits = this.raycaster.intersectObjects(this.npcs);
+            const hits = this.raycaster.intersectObjects(this.targets);
 
             if (hits.length > 0) {
-                const target = hits[0].object;
-                this.scene.remove(target);
-                this.npcs = this.npcs.filter(n => n !== target);
-                document.getElementById('npc-count').innerText = this.npcs.length;
-                
-                // --- Real Blood Logic ---
+                const t = hits[0].object;
                 this.spawnBlood(hits[0].point);
+                this.scene.remove(t);
+                this.targets = this.targets.filter(x => x !== t);
+                document.getElementById('target-count').innerText = this.targets.length;
             }
         }
 
-        spawnBlood(position) {
-            for (let i = 0; i < 15; i++) {
-                const matrix = new THREE.Matrix4();
-                matrix.setPosition(position);
-                this.particleMesh.setMatrixAt(this.nextParticleIndex, matrix);
-                
-                // Velocity data
-                const vel = new THREE.Vector3(
-                    (Math.random() - 0.5) * 0.2, 
-                    (Math.random() * 0.2) + 0.1, // Always slightly up
-                    (Math.random() - 0.5) * 0.2
-                );
-                this.bloodParticles.push({ index: this.nextParticleIndex, vel: vel, life: 1.0 });
-
-                this.nextParticleIndex = (this.nextParticleIndex + 1) % 100; // Reuse pool
+        spawnBlood(pos) {
+            for (let i = 0; i < 10; i++) {
+                const p = new THREE.Mesh(this.bloodGeo, this.bloodMat);
+                p.position.copy(pos);
+                p.userData.v = new THREE.Vector3(Math.random()-0.5, Math.random()*0.5, Math.random()-0.5).multiplyScalar(0.2);
+                this.scene.add(p);
+                this.bloodBits.push(p);
+                setTimeout(() => { this.scene.remove(p); this.bloodBits = this.bloodBits.filter(b => b !== p); }, 800);
             }
-            this.particleMesh.instanceMatrix.needsUpdate = true;
         }
 
-        updateBlood(dt) {
-            this.bloodParticles.forEach((p, i) => {
-                p.life -= dt * 2; // Fade out
-                p.vel.y -= dt * 0.5; // Gravity
-                
-                const matrix = new THREE.Matrix4();
-                this.particleMesh.getMatrixAt(p.index, matrix);
-                const pos = new THREE.Vector3();
-                pos.setFromMatrixPosition(matrix);
-                pos.addScaledVector(p.vel, 1);
-                matrix.setPosition(pos);
-                this.particleMesh.setMatrixAt(p.index, matrix);
+        renderLoop() {
+            requestAnimationFrame(() => this.renderLoop());
+            const dt = this.clock.getDelta();
 
-                if (p.life <= 0) {
-                    this.bloodParticles.splice(i, 1);
-                }
-            });
-            this.particleMesh.instanceMatrix.needsUpdate = true;
-        }
-
-        update(dt) {
-            // Movement
-            const speed = 0.15;
-            this.camera.translateZ(this.moveDir.y * speed);
-            this.camera.translateX(this.moveDir.x * speed);
+            // Movement Physics
+            this.camera.translateZ(this.moveData.y * 0.18);
+            this.camera.translateX(this.moveData.x * 0.18);
             this.camera.position.y = 1.6;
 
-            // Apply Camera Shake & Recovery
-            this.camera.position.addScaledVector(this.shake, 1);
-            this.shake.multiplyScalar(0.85); // Decay over time
+            // Recoil Recovery Math
+            // Recoil decay: $v_{new} = v_{old} \times 0.85$
+            this.camera.rotation.x += this.recoil.y;
+            this.camera.rotation.y += this.recoil.x;
+            this.recoil.multiplyScalar(0.85);
+
+            // Blood Physics
+            this.bloodBits.forEach(b => b.position.add(b.userData.v));
 
             if (this.mixer) this.mixer.update(dt);
-            this.updateBlood(dt);
-        }
-
-        animate() {
-            requestAnimationFrame(() => this.animate());
-            const dt = this.clock.getDelta();
-            this.update(dt);
             this.renderer.render(this.scene, this.camera);
-        }
-
-        hideLoading() {
-            document.getElementById('loading-screen').style.display = 'none';
-            document.getElementById('overlay').style.display = 'flex';
+            
+            if (this.clock.elapsedTime % 1 < 0.02) {
+                document.getElementById('fps-val').innerText = Math.round(1/dt) + " FPS";
+            }
         }
     }
 
-    document.getElementById('overlay').onclick = () => {
-        document.getElementById('overlay').remove();
-        new Game();
+    document.getElementById('start-screen').onclick = () => {
+        document.getElementById('start-screen').remove();
+        new GameEngine();
     };
+
+    window.addEventListener('resize', () => {
+        // Redraw on rotate
+    });
 </script>
 </body>
 </html>
