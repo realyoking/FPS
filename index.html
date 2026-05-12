@@ -3,66 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>L96A1 Elite - Nga Edition</title>
+    <title>L96A1 ELITE - Nga Edition</title>
     <style>
-        :root { --neon-green: #00ff41; --neon-red: #ff3131; }
-        body { margin: 0; overflow: hidden; background: #000; touch-action: none; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        :root { --main-color: #00ffcc; --accent-color: #ff0055; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Inter', sans-serif; touch-action: none; }
         
-        /* HUD Layout */
-        #hud {
-            position: fixed; inset: 0; pointer-events: none; z-index: 50;
-            display: flex; flex-direction: column; justify-content: space-between; padding: 20px;
-        }
-
-        #stats-top { display: flex; justify-content: space-between; color: var(--neon-green); text-shadow: 0 0 10px rgba(0,255,65,0.5); }
-        .stat-box { background: rgba(0,0,0,0.6); padding: 10px 20px; border-left: 3px solid var(--neon-green); }
-
-        /* Crosshair */
-        #crosshair {
-            position: fixed; top: 50%; left: 50%; width: 40px; height: 40px;
-            transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center;
-        }
-        .ch-line { position: absolute; background: var(--neon-green); opacity: 0.8; }
-        .v { width: 2px; height: 20px; } .h { width: 20px; height: 2px; }
-        .dot { width: 4px; height: 4px; background: var(--neon-red); border-radius: 50%; }
+        /* HUD UI */
+        #hud { position: fixed; inset: 0; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; padding: 25px; color: white; text-shadow: 0 0 10px rgba(0,0,0,1); }
+        .hud-top { display: flex; justify-content: space-between; align-items: flex-start; }
+        .stat-card { background: rgba(0,0,0,0.75); border-left: 4px solid var(--main-color); padding: 12px 20px; font-weight: 800; letter-spacing: 1px; backdrop-filter: blur(5px); }
+        
+        /* Reticle / Crosshair */
+        #reticle { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; }
+        .scope-line { position: absolute; background: var(--main-color); opacity: 0.7; }
+        .sl-v { width: 2px; height: 30px; } .sl-h { width: 30px; height: 2px; }
+        .center-dot { width: 4px; height: 4px; background: var(--accent-color); border-radius: 50%; box-shadow: 0 0 10px var(--accent-color); }
 
         /* Controls */
-        #controls { position: fixed; inset: 0; pointer-events: none; z-index: 100; }
-        .joy-container { position: absolute; bottom: 50px; left: 50px; width: 150px; height: 150px; background: rgba(255,255,255,0.05); border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); pointer-events: auto; }
-        #stick { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 20px rgba(255,255,255,0.1); }
+        #joy-zone { position: absolute; bottom: 50px; left: 50px; width: 140px; height: 140px; border: 2px solid rgba(255,255,255,0.2); border-radius: 50%; pointer-events: auto; background: rgba(255,255,255,0.05); }
+        #joy-stick { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; background: white; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 20px rgba(255,255,255,0.2); pointer-events: none; }
         
-        #fire-zone { position: absolute; bottom: 50px; right: 50px; width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, rgba(255,0,0,0.3) 0%, transparent 70%); border: 2px dashed var(--neon-red); display: flex; align-items: center; justify-content: center; pointer-events: auto; cursor: pointer; }
-        #fire-btn { width: 80px; height: 80px; background: var(--neon-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.2rem; box-shadow: 0 0 30px rgba(255,0,0,0.5); }
+        #fire-zone { position: absolute; bottom: 60px; right: 60px; pointer-events: auto; }
+        .fire-btn { width: 100px; height: 100px; background: radial-gradient(circle, var(--accent-color), #880022); border: 4px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 30px rgba(255, 0, 85, 0.4); cursor: pointer; }
+        .fire-btn:active { transform: scale(0.9); }
 
-        #overlay { position: fixed; inset: 0; background: radial-gradient(circle, #222, #000); color: var(--neon-green); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
-        .pulse { animation: pulse-web 2s infinite; }
-        @keyframes pulse-web { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        #overlay { position: fixed; inset: 0; background: radial-gradient(circle, #111, #000); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--main-color); cursor: pointer; }
+        .pulse { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
 <div id="overlay">
-    <h1 class="pulse">INITIALIZING L96A1 SYSTEMS</h1>
-    <p>TAP TO DEPLOY</p>
+    <h1 class="pulse">L96A1 SYSTEM ONLINE</h1>
+    <p>TAP TO DEPLOY NGA</p>
 </div>
 
 <div id="hud">
-    <div id="stats-top">
-        <div class="stat-box">TARGETS REMAINING: <span id="target-count">10</span></div>
-        <div class="stat-box">FPS: <span id="fps">60</span></div>
+    <div class="hud-top">
+        <div class="stat-card">TARGETS: <span id="npc-count">10</span></div>
+        <div class="stat-card" id="fps-counter">60 FPS</div>
     </div>
-    <div id="crosshair">
-        <div class="ch-line v" style="top: 0"></div>
-        <div class="ch-line v" style="bottom: 0"></div>
-        <div class="ch-line h" style="left: 0"></div>
-        <div class="ch-line h" style="right: 0"></div>
-        <div class="dot"></div>
+    <div id="reticle">
+        <div class="scope-line sl-v" style="top: -25px"></div>
+        <div class="scope-line sl-v" style="bottom: -25px"></div>
+        <div class="scope-line sl-h" style="left: -25px"></div>
+        <div class="scope-line sl-h" style="right: -25px"></div>
+        <div class="center-dot"></div>
     </div>
 </div>
 
-<div id="controls">
-    <div class="joy-container" id="joy-base"><div id="stick"></div></div>
-    <div id="fire-zone"><div id="fire-btn">FIRE</div></div>
+<div id="joy-zone"><div id="joy-stick"></div></div>
+<div id="fire-zone">
+    <div class="fire-btn">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 8v8"></path>
+            <path d="M8 12h8"></path>
+        </svg>
+    </div>
 </div>
 
 <script type="importmap">
@@ -74,232 +73,298 @@
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
     /**
-     * GAME ENGINE CORE
-     * @author Nga & Gemini
+     * FPS ENGINE V2
+     * Features: Recoil, Tracers, Impact Particles, Advanced NPC
      */
-    class GameEngine {
+    class SniperGame {
         constructor() {
-            this.initScene();
-            this.initPhysics();
+            this.initEngine();
             this.initWorld();
-            this.initInputs();
-            this.initAudio(); // Ready for expansion
+            this.initSystems();
+            this.initInput();
             this.animate();
         }
 
-        initScene() {
+        initEngine() {
             this.scene = new THREE.Scene();
-            this.scene.background = new THREE.Color(0x050505);
-            this.scene.fog = new THREE.FogExp2(0x050505, 0.05);
+            this.scene.background = new THREE.Color(0x020205);
+            this.scene.fog = new THREE.FogExp2(0x020205, 0.04);
 
-            this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+            this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
             this.camera.position.set(0, 1.6, 0);
 
             this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
             this.renderer.setSize(window.innerWidth, window.innerHeight);
             this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            this.renderer.toneMapping = THREE.ReinhardToneMapping;
+            this.renderer.shadowMap.enabled = true;
             document.body.appendChild(this.renderer.domElement);
 
-            // Lighting
-            const ambient = new THREE.AmbientLight(0x404040, 2);
-            this.scene.add(ambient);
-            
-            this.sun = new THREE.PointLight(0x00ff41, 1, 50);
-            this.sun.position.set(5, 10, 5);
-            this.scene.add(this.sun);
-        }
-
-        initPhysics() {
             this.clock = new THREE.Clock();
             this.raycaster = new THREE.Raycaster();
-            this.moveData = { x: 0, y: 0 };
-            this.lookData = { x: 0, y: 0 };
-            this.npcs = [];
-            this.bullets = [];
-            this.mixer = null;
+            
+            // Lighting for "Nice Graphics"
+            const ambient = new THREE.AmbientLight(0x4040ff, 0.5);
+            this.scene.add(ambient);
+
+            this.mainLight = new THREE.DirectionalLight(0x00ffcc, 1.5);
+            this.mainLight.position.set(5, 10, 7);
+            this.mainLight.castShadow = true;
+            this.scene.add(this.mainLight);
         }
 
         initWorld() {
-            // Floor with grid
-            const grid = new THREE.GridHelper(200, 100, 0x00ff41, 0x111111);
+            // High-detail Grid Floor
+            const grid = new THREE.GridHelper(200, 80, 0x00ffcc, 0x111122);
             this.scene.add(grid);
 
-            // Spawn Targets
-            for(let i=0; i<10; i++) this.createNPC();
+            // Ground Plane
+            const ground = new THREE.Mesh(
+                new THREE.PlaneGeometry(500, 500),
+                new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.8 })
+            );
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            this.scene.add(ground);
+
+            // Spawn 10 NPCs
+            this.npcs = [];
+            for (let i = 0; i < 10; i++) this.spawnNPC();
 
             // Load Sniper
             const loader = new GLTFLoader();
-            loader.load('l96a1.glb', (gltf) => {
+            loader.load('sniper.glb', (gltf) => {
                 this.sniper = gltf.scene;
                 this.camera.add(this.sniper);
                 this.scene.add(this.camera);
-                
-                // Position tweak for "Right Down" requirement
-                this.sniper.position.set(0.35, -0.38, -0.55);
+
+                // Position: Bottom Right down
+                this.sniper.position.set(0.35, -0.4, -0.6);
                 this.sniper.rotation.y = Math.PI;
-                this.sniper.scale.set(0.08, 0.08, 0.08);
+                this.sniper.scale.set(0.1, 0.1, 0.1);
 
                 this.mixer = new THREE.AnimationMixer(this.sniper);
                 this.shootAnim = gltf.animations[0];
-            });
+            }, undefined, (e) => console.error("Missing sniper.glb file in folder!"));
         }
 
-        createNPC() {
+        initSystems() {
+            this.particles = [];
+            this.tracers = [];
+            this.recoil = 0;
+            this.shake = new THREE.Vector3();
+            this.moveDir = { x: 0, y: 0 };
+            this.lastTouch = { x: 0, y: 0 };
+        }
+
+        spawnNPC() {
             const group = new THREE.Group();
             
-            // Dummy Mesh
-            const bodyGeo = new THREE.CapsuleGeometry(0.4, 1.2, 4, 8);
-            const bodyMat = new THREE.MeshStandardMaterial({ 
-                color: 0x333333, 
-                emissive: 0xff0000, 
-                emissiveIntensity: 0.5,
-                wireframe: true 
-            });
-            const body = new THREE.Mesh(bodyGeo, bodyMat);
-            
+            // Body Mesh
+            const body = new THREE.Mesh(
+                new THREE.CapsuleGeometry(0.4, 1.2, 4, 8),
+                new THREE.MeshStandardMaterial({ color: 0x333333, emissive: 0xff0000, emissiveIntensity: 0.2 })
+            );
+            body.castShadow = true;
             group.add(body);
-            group.position.set(Math.random()*40-20, 1.1, Math.random()*-40-10);
-            group.userData = { health: 100, alive: true };
+
+            // Health Indicator (Small glowing sphere)
+            const eye = new THREE.Mesh(
+                new THREE.SphereGeometry(0.1),
+                new THREE.MeshBasicMaterial({ color: 0xff0000 })
+            );
+            eye.position.set(0, 0.6, 0.3);
+            group.add(eye);
+
+            group.position.set(Math.random() * 60 - 30, 1.1, Math.random() * -60 - 10);
+            group.userData = { hp: 100, originalPos: group.position.clone() };
             
             this.scene.add(group);
             this.npcs.push(group);
         }
 
-        initInputs() {
-            // Joystick
-            const stick = document.getElementById('stick');
-            const joyBase = document.getElementById('joy-base');
+        initInput() {
+            const stick = document.getElementById('joy-stick');
+            const zone = document.getElementById('joy-zone');
 
-            joyBase.addEventListener('touchmove', (e) => {
+            // Movement Joystick
+            zone.addEventListener('touchmove', (e) => {
                 e.preventDefault();
                 const t = e.touches[0];
-                const b = joyBase.getBoundingClientRect();
-                const center = { x: b.left + 75, y: b.top + 75 };
+                const r = zone.getBoundingClientRect();
+                const center = { x: r.left + 70, y: r.top + 70 };
                 let dx = t.clientX - center.x;
                 let dy = t.clientY - center.y;
-                const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 75);
+                const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 70);
                 const angle = Math.atan2(dy, dx);
-
-                this.moveData.x = (Math.cos(angle) * dist) / 75;
-                this.moveData.y = (Math.sin(angle) * dist) / 75;
-
+                
+                this.moveDir.x = (Math.cos(angle) * dist) / 70;
+                this.moveDir.y = (Math.sin(angle) * dist) / 70;
+                
                 stick.style.left = `calc(50% + ${Math.cos(angle) * dist}px)`;
                 stick.style.top = `calc(50% + ${Math.sin(angle) * dist}px)`;
             });
 
-            joyBase.addEventListener('touchend', () => {
-                this.moveData = { x: 0, y: 0 };
+            zone.addEventListener('touchend', () => {
+                this.moveDir = { x: 0, y: 0 };
                 stick.style.left = stick.style.top = '50%';
             });
 
-            // Look Logic (Screen Touch)
-            let lastX = 0, lastY = 0;
+            // Look Around (Right side of screen)
             window.addEventListener('touchmove', (e) => {
                 const t = e.touches[0];
-                if(t.clientX > window.innerWidth / 2) {
-                    if(lastX !== 0) {
-                        this.camera.rotation.y -= (t.clientX - lastX) * 0.006;
-                        this.camera.rotation.x -= (t.clientY - lastY) * 0.006;
+                if (t.clientX > window.innerWidth / 2) {
+                    if (this.lastTouch.x !== 0) {
+                        this.camera.rotation.y -= (t.clientX - this.lastTouch.x) * 0.005;
+                        this.camera.rotation.x -= (t.clientY - this.lastTouch.y) * 0.005;
                         this.camera.rotation.x = Math.max(-1.4, Math.min(1.4, this.camera.rotation.x));
                     }
-                    lastX = t.clientX; lastY = t.clientY;
+                    this.lastTouch.x = t.clientX;
+                    this.lastTouch.y = t.clientY;
                 }
             });
-            window.addEventListener('touchend', () => { lastX = lastY = 0; });
+            window.addEventListener('touchend', () => { this.lastTouch = { x: 0, y: 0 }; });
 
-            // Shoot
-            document.getElementById('fire-zone').addEventListener('touchstart', (e) => {
+            // Fire Button
+            document.querySelector('.fire-btn').addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                this.handleFire();
+                this.fire();
             });
         }
 
-        handleFire() {
-            if(this.mixer && this.shootAnim) {
+        fire() {
+            if (this.mixer && this.shootAnim) {
                 const action = this.mixer.clipAction(this.shootAnim);
                 action.reset().setLoop(THREE.LoopOnce).play();
             }
 
-            // Muzzle Flash Effect
-            const flash = new THREE.PointLight(0xffaa00, 5, 2);
+            // Recoil & Shake
+            this.recoil = 0.15;
+            this.shake.set(
+                (Math.random() - 0.5) * 0.05,
+                (Math.random() - 0.5) * 0.05,
+                0
+            );
+
+            // Muzzle Light
+            const flash = new THREE.PointLight(0xffff00, 10, 5);
             flash.position.copy(this.camera.position);
             this.scene.add(flash);
-            setTimeout(() => this.scene.add(flash), 50); // flicker
-            setTimeout(() => this.scene.remove(flash), 100);
+            setTimeout(() => this.scene.remove(flash), 50);
 
-            // Raycast Hit
-            this.raycaster.setFromCamera({x:0, y:0}, this.camera);
+            // Raycast Hit Logic
+            this.raycaster.setFromCamera({ x: 0, y: 0 }, this.camera);
             const hits = this.raycaster.intersectObjects(this.npcs, true);
-            
-            if(hits.length > 0) {
-                let target = hits[0].object;
-                while(target.parent && !target.userData.health) target = target.parent;
+
+            // Create Tracer
+            this.createTracer(hits[0]?.point || null);
+
+            if (hits.length > 0) {
+                let obj = hits[0].object;
+                while (obj.parent && !obj.userData.hp) obj = obj.parent;
                 
-                if(target.userData.health > 0) {
-                    target.userData.health -= 100;
-                    if(target.userData.health <= 0) {
-                        this.explode(target.position);
-                        this.scene.remove(target);
-                        this.npcs = this.npcs.filter(n => n !== target);
-                        document.getElementById('target-count').innerText = this.npcs.length;
+                if (obj.userData.hp) {
+                    obj.userData.hp -= 50;
+                    this.createImpact(hits[0].point);
+                    
+                    if (obj.userData.hp <= 0) {
+                        this.scene.remove(obj);
+                        this.npcs = this.npcs.filter(n => n !== obj);
+                        document.getElementById('npc-count').innerText = this.npcs.length;
                     }
                 }
             }
         }
 
-        explode(pos) {
-            // Simple particle burst
-            const geo = new THREE.IcosahedronGeometry(0.1);
-            const mat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-            for(let i=0; i<10; i++) {
+        createTracer(endPoint) {
+            const points = [];
+            points.push(new THREE.Vector3(0.3, -0.3, -0.6).applyMatrix4(this.camera.matrixWorld));
+            
+            if (endPoint) {
+                points.push(endPoint);
+            } else {
+                const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion);
+                points.push(new THREE.Vector3().copy(this.camera.position).addScaledVector(dir, 100));
+            }
+
+            const geo = new THREE.BufferGeometry().setFromPoints(points);
+            const mat = new THREE.LineBasicMaterial({ color: 0xffffcc, transparent: true, opacity: 0.8 });
+            const line = new THREE.Line(geo, mat);
+            this.scene.add(line);
+            this.tracers.push({ mesh: line, time: 0 });
+        }
+
+        createImpact(pos) {
+            const geo = new THREE.SphereGeometry(0.05);
+            const mat = new THREE.MeshBasicMaterial({ color: 0xff0033 });
+            for (let i = 0; i < 8; i++) {
                 const p = new THREE.Mesh(geo, mat);
                 p.position.copy(pos);
-                p.userData.vel = new THREE.Vector3(Math.random()-0.5, Math.random(), Math.random()-0.5).multiplyScalar(0.2);
-                this.bullets.push(p);
+                p.userData.vel = new THREE.Vector3(Math.random()-0.5, Math.random(), Math.random()-0.5).multiplyScalar(0.15);
                 this.scene.add(p);
-                setTimeout(() => this.scene.remove(p), 1000);
+                this.particles.push(p);
+                setTimeout(() => {
+                    this.scene.remove(p);
+                    this.particles = this.particles.filter(item => item !== p);
+                }, 600);
             }
         }
 
-        update(delta) {
+        update(dt) {
             // Movement
-            const speed = 0.2;
-            this.camera.translateZ(this.moveData.y * speed);
-            this.camera.translateX(this.moveData.x * speed);
+            const speed = 0.12;
+            this.camera.translateZ(this.moveDir.y * speed);
+            this.camera.translateX(this.moveDir.x * speed);
             this.camera.position.y = 1.6;
 
-            // Particles
-            this.bullets.forEach(p => {
-                if(p.userData.vel) p.position.add(p.userData.vel);
+            // Recoil Recovery
+            if (this.recoil > 0) {
+                this.camera.rotation.x += this.recoil;
+                this.recoil *= 0.85;
+            }
+            
+            // Apply Screen Shake
+            this.camera.position.add(this.shake);
+            this.shake.multiplyScalar(0.8);
+
+            // NPC "Breathing" AI
+            this.npcs.forEach(npc => {
+                npc.position.y = 1.1 + Math.sin(this.clock.elapsedTime * 2) * 0.1;
+                npc.rotation.y += 0.01;
             });
 
-            if(this.mixer) this.mixer.update(delta);
-            
-            // Stats
-            document.getElementById('fps').innerText = Math.round(1/delta);
+            // Particles & Tracers
+            this.particles.forEach(p => p.position.add(p.userData.vel));
+            this.tracers.forEach((t, i) => {
+                t.time += dt;
+                t.mesh.material.opacity = 1 - (t.time * 5);
+                if (t.time > 0.2) {
+                    this.scene.remove(t.mesh);
+                    this.tracers.splice(i, 1);
+                }
+            });
+
+            if (this.mixer) this.mixer.update(dt);
+            document.getElementById('fps-counter').innerText = Math.round(1 / dt) + " FPS";
         }
 
         animate() {
             requestAnimationFrame(() => this.animate());
-            const delta = this.clock.getDelta();
-            this.update(delta);
+            this.update(this.clock.getDelta());
             this.renderer.render(this.scene, this.camera);
         }
     }
 
-    // Start Engine on Click
+    // Boot
     document.getElementById('overlay').onclick = () => {
         document.getElementById('overlay').remove();
-        window.game = new GameEngine();
+        window.game = new SniperGame();
     };
 
     window.addEventListener('resize', () => {
-        if(window.game) {
-            window.game.camera.aspect = window.innerWidth / window.innerHeight;
-            window.game.camera.updateProjectionMatrix();
-            window.game.renderer.setSize(window.innerWidth, window.innerHeight);
-        }
+        if (!window.game) return;
+        window.game.camera.aspect = window.innerWidth / window.innerHeight;
+        window.game.camera.updateProjectionMatrix();
+        window.game.renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
 </script>
